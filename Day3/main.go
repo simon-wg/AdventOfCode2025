@@ -2,35 +2,22 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
 	"os"
+	"simon-wg/AdventOfCode/util"
 	"strconv"
 	"strings"
 )
 
-var sol = 0
-
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Run using `go run ./Day3 <part>`")
-		fmt.Println("E.g. `go run ./Day3 1`")
-		os.Exit(1)
-	}
-	part := os.Args[1]
-	nDigits := 0
-	switch part {
-	case "1":
-		nDigits = 2
-	case "2":
-		nDigits = 12
-	default:
-		fmt.Println("Only part 1 and 2 exist")
-		fmt.Println("Run using `go run ./Day3 <part>`")
-		fmt.Println("E.g. `go run ./Day3 1`")
-		os.Exit(1)
-	}
+	input, _ := io.ReadAll(os.Stdin)
+	data := parseInput(input)
+	part := helpers.GetPart()
+	fmt.Println(solve(data, part))
+}
 
-	input, _ := os.ReadFile("Day3/in.txt")
+func parseInput(input []byte) [][]int {
 	rowCount := 0
 	colCount := 0
 	rows := strings.Split(strings.TrimSpace(string(input)), "\n")
@@ -48,6 +35,15 @@ func main() {
 			data[y][x] = n
 		}
 	}
+	return data
+}
+
+func solve(data [][]int, part int) int {
+	sol := 0
+	nDigits := 12
+	if part == 1 {
+		nDigits = 2
+	}
 	for _, row := range data {
 		var digits []int = make([]int, nDigits)
 		lastPos := -1
@@ -57,15 +53,17 @@ func main() {
 		for i := nDigits; i > 0; i-- {
 			digit := digits[i-1] * int(math.Pow10(i-1))
 			sol += digit
-			fmt.Println(digit)
 		}
 	}
-	fmt.Println(sol)
+	return sol
 }
 
 func findDigit(row []int, pos int, n int) (int, int) {
 	largest := 0
 	for i := pos; i < len(row)-n; i++ {
+		if row[i] == 9 {
+			return 9, i
+		}
 		if row[i] > largest {
 			largest = row[i]
 			pos = i

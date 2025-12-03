@@ -2,70 +2,67 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"iter"
 	"os"
+	h "simon-wg/AdventOfCode/util"
 	"strconv"
 	"strings"
 )
 
-var curr = 50
-var passwd = 0
-
 func main() {
-	input, _ := os.ReadFile("Day1/in.txt")
-	operations := strings.SplitSeq(string(input), "\n")
-	for op := range operations {
+	input, _ := io.ReadAll(os.Stdin)
+	data := parseInput(input)
+	part := h.GetPart()
+	fmt.Println(solve(data, part))
+}
+
+func parseInput(input []byte) iter.Seq[string] {
+	return strings.SplitSeq(string(input), "\n")
+}
+
+func solve(data iter.Seq[string], part int) int {
+	var curr = 50
+	var passwd = 0
+
+	for op := range data {
 		if len(op) == 0 {
 			break
 		}
-		turn(op)
+		if part == 1 {
+			part1(op, &curr, &passwd)
+			continue
+		}
+		part2(op, &curr, &passwd)
 	}
-	fmt.Println(passwd)
+	return passwd
 }
 
-func turn(op string) {
+func part1(op string, curr, passwd *int) {
 	direction := op[0]
 	amount, _ := strconv.Atoi(op[1:])
 	switch direction {
 	case 'R':
-		turnRight(amount)
+		*curr = h.Mod(*curr+amount, 100)
 	case 'L':
-		turnLeft(amount)
+		*curr = h.Mod(*curr-amount, 100)
+	}
+	if *curr == 0 {
+		*passwd++
 	}
 }
 
-func turnRightPart1(amount int) {
-	curr = mod(curr+amount, 100)
-	if curr == 0 {
-		passwd++
+func part2(op string, curr, passwd *int) {
+	direction := op[0]
+	amount, _ := strconv.Atoi(op[1:])
+	switch direction {
+	case 'R':
+		*passwd += (*curr + amount) / 100
+		*curr = h.Mod(*curr+amount, 100)
+	case 'L':
+		term1 := h.FloorDiv(*curr-1, 100)
+		term2 := h.FloorDiv(*curr-amount-1, 100)
+		*passwd += term1 - term2
+		*curr = h.Mod(*curr-amount, 100)
 	}
-}
-
-func turnLeftPart1(amount int) {
-	curr = mod(curr-amount, 100)
-	if curr == 0 {
-		passwd++
-	}
-}
-
-func turnRight(amount int) {
-	passwd += (curr + amount) / 100
-	curr = mod(curr+amount, 100)
-}
-
-func turnLeft(amount int) {
-	term1 := floorDiv(curr-1, 100)
-	term2 := floorDiv(curr-amount-1, 100)
-	passwd += term1 - term2
-	curr = mod(curr-amount, 100)
-}
-
-func floorDiv(a, b int) int {
-	if a >= 0 {
-		return a / b
-	}
-	return (a - b + 1) / b
-}
-
-func mod(a, b int) int {
-	return (a%b + b) % b
 }
